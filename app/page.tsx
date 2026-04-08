@@ -37,7 +37,7 @@ export default function Home() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const doodlesRef = useRef<FloatingDoodle[]>([]);
   const drawingsRef = useRef<NormalizedDrawing[]>([]);
-  const pointerRef = useRef({ x: 0, y: 0, active: false });
+  const pointerRef = useRef({ x: 0, y: 0, active: false, speed: 0 });
   const lastSpawnRef = useRef(0);
   const idRef = useRef(0);
   const [zoom, setZoom] = useState(1);
@@ -134,11 +134,16 @@ export default function Home() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       const now = performance.now();
-      const spawnInterval = 85 / clamp(zoom, 0.6, 2.6);
+      const zoomFactor = clamp(zoom, 0.6, 2.6);
+      const movementEnergy = clamp(pointerRef.current.speed / 18, 0, 1);
+      const spawnInterval = 260 - movementEnergy * 170;
 
-      if (pointerRef.current.active && now - lastSpawnRef.current > spawnInterval) {
-        const zoomFactor = clamp(zoom, 0.6, 2.6);
-        const count = Math.round(1.2 + zoomFactor * 1.1);
+      if (
+        pointerRef.current.active &&
+        movementEnergy > 0.04 &&
+        now - lastSpawnRef.current > spawnInterval / zoomFactor
+      ) {
+        const count = Math.max(1, Math.round(zoomFactor + movementEnergy * 3));
         const radius = 90 / zoomFactor;
         spawnDoodles(count, radius);
         lastSpawnRef.current = now;
@@ -177,11 +182,53 @@ export default function Home() {
 
   useEffect(() => {
     const handleMove = (event: MouseEvent) => {
-      pointerRef.current = { x: event.clientX, y: event.clientY, active: true };
+      const wasActive = pointerRef.current.active;
+      const dx = event.clientX - pointerRef.current.x;
+      const dy = event.clientY - pointerRef.current.y;
+      const speed = Math.hypot(dx, dy);
+      pointerRef.current = {
+        x: event.clientX,
+        y: event.clientY,
+        active: true,
+        speed,
+      };
+
+      if (!wasActive) {
+        lastSpawnRef.current = performance.now();
+
+        const drawings = drawingsRef.current;
+        if (!drawings.length) return;
+
+        const zoomFactor = clamp(zoom, 0.6, 2.6);
+        const burstCount = Math.round(3 + zoomFactor * 2);
+        const radius = 72 / zoomFactor;
+
+        for (let i = 0; i < burstCount; i += 1) {
+          const drawing = drawings[Math.floor(Math.random() * drawings.length)];
+          const angle = Math.random() * Math.PI * 2;
+          const distance = Math.random() * radius;
+          doodlesRef.current.push({
+            id: idRef.current++,
+            drawing,
+            x: event.clientX + Math.cos(angle) * distance,
+            y: event.clientY + Math.sin(angle) * distance,
+            scale: 0.22 + Math.random() * 0.38,
+            rotation: (Math.random() - 0.5) * 0.4,
+            driftX: (Math.random() - 0.5) * 0.22,
+            driftY: -0.16 - Math.random() * 0.28,
+            age: 0,
+            lifespan: 3600 + Math.random() * 2200,
+          });
+        }
+      }
     };
 
     const handleLeave = () => {
-      pointerRef.current.active = false;
+      pointerRef.current = {
+        ...pointerRef.current,
+        active: false,
+        speed: 0,
+      };
     };
 
     const handleWheel = (event: WheelEvent) => {
