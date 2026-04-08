@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { AppStateProvider } from "@/components/app-state-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Instacart Drone MVP",
-  description: "Autonomous grocery delivery MVP with customer and shopper flows.",
+  title: "Moon Memories",
+  description: "An interactive moon artwork built with drifting Quick, Draw! doodles.",
 };
 
 export default function RootLayout({
@@ -15,9 +14,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>
-        <AppStateProvider>{children}</AppStateProvider>
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

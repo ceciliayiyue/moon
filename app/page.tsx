@@ -28,7 +28,7 @@ type FloatingDoodle = {
   lifespan: number;
 };
 
-const BACKGROUND_IMAGE_URL = "/moon-bg.webp";
+const BACKGROUND_IMAGE_URL = "/moon-bg.jpg";
 const QUICK_DRAW_MOON_URL = "/api/moon";
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));

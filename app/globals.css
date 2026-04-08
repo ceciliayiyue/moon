@@ -44,7 +44,7 @@ select {
   height: 100vh;
   width: 100vw;
   overflow: hidden;
-  background-image: url("/moon-bg.webp");
+  background-image: url("/moon-bg.jpg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
